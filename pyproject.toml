@@ -1,7 +1,7 @@
 [project]
 name = "sshelf"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lightweight TUI to manage your SSH config easily"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
