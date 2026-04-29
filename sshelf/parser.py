@@ -20,11 +20,12 @@ class SSHHost:
 
 
 class SSHConfig:
-    def load(self) -> list[SSHHost]:
+    def load(self, config_path: str = None) -> list[SSHHost]:
         hosts = []
         current_host = None
 
-        config_path = os.path.expanduser("~/.ssh/config")
+        if config_path is None:
+            config_path = os.path.expanduser("~/.ssh/config")
         if not os.path.exists(config_path):
             return hosts
         with open(config_path, "r") as f:
