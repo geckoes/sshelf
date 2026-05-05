@@ -51,5 +51,22 @@ class SSHConfig:
 
         return hosts
 
-    def save(self, hosts: list[SSHHost]) -> None:
-        pass
+    def save(self, hosts: list[SSHHost], config_path: str = None) -> None:
+        if config_path is None:
+            config_path = os.path.expanduser("~/.ssh/config")
+        temp_config_path = str(config_path) + ".tmp"
+        with open(temp_config_path, "w") as f:
+            for host in hosts:
+                f.write(f"Host {host.host}\n")
+                if host.hostname:
+                    f.write(f"    Hostname {host.hostname}\n")
+                if host.user:
+                    f.write(f"    User {host.user}\n")
+                if host.port != 22:
+                    f.write(f"    Port {host.port}\n")
+                if host.identity_file:
+                    f.write(f"    IdentityFile {host.identity_file}\n")
+                for key, value in host.extra.items():
+                    f.write(f"    {key} {value}\n")
+                f.write("\n")
+        os.replace(temp_config_path, config_path)

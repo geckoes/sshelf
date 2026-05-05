@@ -93,3 +93,38 @@ Host server2
     assert host2.user == "user2"
     assert host2.port == 2200
     assert host2.identity_file == "~/.ssh/id_ed25519"
+
+
+def test_save_and_load(tmp_path):
+    config_file = tmp_path / "config"
+    hosts = [
+        SSHHost(
+            host="server1",
+            hostname="server1.example.com",
+            user="user1",
+            port=2222,
+            identity_file="~/.ssh/id_rsa",
+        ),
+        SSHHost(
+            host="server2",
+            hostname="server2.example.com",
+            user="user2",
+            port=2200,
+            identity_file="~/.ssh/id_ed25519",
+        ),
+    ]
+    SSHConfig().save(hosts, config_path=config_file)
+    loaded_hosts = SSHConfig().load(config_path=config_file)
+    assert len(loaded_hosts) == 2
+
+    assert loaded_hosts[0].host == "server1"
+    assert loaded_hosts[0].hostname == "server1.example.com"
+    assert loaded_hosts[0].user == "user1"
+    assert loaded_hosts[0].port == 2222
+    assert loaded_hosts[0].identity_file == "~/.ssh/id_rsa"
+
+    assert loaded_hosts[1].host == "server2"
+    assert loaded_hosts[1].hostname == "server2.example.com"
+    assert loaded_hosts[1].user == "user2"
+    assert loaded_hosts[1].port == 2200
+    assert loaded_hosts[1].identity_file == "~/.ssh/id_ed25519"
