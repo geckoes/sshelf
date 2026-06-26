@@ -70,3 +70,31 @@ class SSHConfig:
                     f.write(f"    {key} {value}\n")
                 f.write("\n")
         os.replace(temp_config_path, config_path)
+    
+def find_host(hosts: list[SSHHost], name: str) -> SSHHost | None:
+    for host in hosts:
+        if host.host == name:
+            return host
+    return None
+
+def add_host(hosts: list[SSHHost], new_host: SSHHost) -> None:
+    existing_host = find_host(hosts, new_host.host)
+    if existing_host:
+        raise ValueError(f"Host '{new_host.host}' already exists.")
+    hosts.append(new_host)
+
+def update_host(hosts: list[SSHHost], name: str, **fields) -> None:
+    host = find_host(hosts, name)
+    if not host:
+        raise ValueError(f"Host '{name}' not found.")
+    for key, value in fields.items():
+        if hasattr(host, key):
+            setattr(host, key, value)
+        else:
+            host.extra[key] = value
+
+def delete_host(hosts: list[SSHHost], name: str) -> None:
+    host = find_host(hosts, name)
+    if not host:
+        raise ValueError(f"Host '{name}' not found.")
+    hosts.remove(host)

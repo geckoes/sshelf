@@ -1,4 +1,13 @@
-from sshelf.parser import SSHConfig, SSHHost
+import pytest
+
+from sshelf.parser import (
+    SSHConfig,
+    SSHHost,
+    add_host,
+    delete_host,
+    find_host,
+    update_host,
+)
 
 
 def test_load_emptyfile(tmp_path):
@@ -128,3 +137,88 @@ def test_save_and_load(tmp_path):
     assert loaded_hosts[1].user == "user2"
     assert loaded_hosts[1].port == 2200
     assert loaded_hosts[1].identity_file == "~/.ssh/id_ed25519"
+
+
+# find_host
+
+
+def test_find_host_found():
+    hosts = [SSHHost(host="server1"), SSHHost(host="server2")]
+    found = find_host(hosts, "server2")
+    assert found is hosts[1]
+
+
+def test_find_host_not_found():
+    hosts = [SSHHost(host="server1")]
+    assert find_host(hosts, "missing") is None
+
+
+# add_host
+
+
+def test_add_host():
+    hosts = [SSHHost(host="server1")]
+    add_host(hosts, SSHHost(host="server2", hostname="server2.example.com"))
+    assert len(hosts) == 2
+    assert hosts[1].host == "server2"
+    assert hosts[1].hostname == "server2.example.com"
+
+
+def test_add_host_duplicate_raises():
+    hosts = [SSHHost(host="server1")]
+    with pytest.raises(ValueError):
+        add_host(hosts, SSHHost(host="server1"))
+    assert len(hosts) == 1
+
+
+# update_host
+
+
+def test_update_host():
+    hosts = [SSHHost(host="server1", user="user1", port=22)]
+    update_host(hosts, "server1", user="root", port=2222)
+    assert hosts[0].user == "root"
+    assert hosts[0].port == 2222
+
+
+def test_update_host_not_found_raises():
+    hosts = [SSHHost(host="server1")]
+    with pytest.raises(ValueError):
+        update_host(hosts, "missing", user="root")
+
+
+def test_update_host_unknown_field_goes_to_extra():
+    hosts = [SSHHost(host="server1")]
+    update_host(hosts, "server1", ForwardAgent="yes")
+    assert hosts[0].extra == {"ForwardAgent": "yes"}
+
+
+# delete_host
+
+
+def test_delete_host():
+    hosts = [SSHHost(host="server1"), SSHHost(host="server2")]
+    delete_host(hosts, "server1")
+    assert len(hosts) == 1
+    assert hosts[0].host == "server2"
+
+
+def test_delete_host_not_found_raises():
+    hosts = [SSHHost(host="server1")]
+    with pytest.raises(ValueError):
+        delete_host(hosts, "missing")
+    assert len(hosts) == 1
+
+
+# round-trip: CRUD then persist
+
+
+def test_add_then_save_and_load(tmp_path):
+    config_file = tmp_path / "config"
+    hosts = [SSHHost(host="server1", hostname="server1.example.com")]
+    add_host(hosts, SSHHost(host="server2", hostname="server2.example.com"))
+    SSHConfig().save(hosts, config_path=config_file)
+
+    loaded_hosts = SSHConfig().load(config_path=config_file)
+    assert find_host(loaded_hosts, "server2") is not None
+    assert len(loaded_hosts) == 2
