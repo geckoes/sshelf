@@ -8,6 +8,10 @@ dependencies = [
     "textual>=8.2.4",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
