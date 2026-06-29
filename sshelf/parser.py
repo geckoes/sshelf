@@ -2,10 +2,10 @@ from dataclasses import dataclass, field
 import os
 
 KEY_MAP = {
-    "Hostname": ("hostname", str),
-    "User": ("user", str),
-    "Port": ("port", int),
-    "IdentityFile": ("identity_file", str),
+    "hostname": ("hostname", str),
+    "user": ("user", str),
+    "port": ("port", int),
+    "identityfile": ("identity_file", str),
 }
 
 
@@ -38,8 +38,10 @@ class SSHConfig:
                         hosts.append(current_host)
                     current_host = SSHHost(host=line[5:])
                 else:
+                    if current_host is None:
+                        continue
                     key, value = line.split(" ", 1)
-                    mapped_key = KEY_MAP.get(key)
+                    mapped_key = KEY_MAP.get(key.lower())
                     if mapped_key:
                         field_name, field_type = mapped_key
                         setattr(current_host, field_name, field_type(value))

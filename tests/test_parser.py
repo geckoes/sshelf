@@ -104,6 +104,27 @@ Host server2
     assert host2.identity_file == "~/.ssh/id_ed25519"
 
 
+def test_load_with_global_options_before_first_host(tmp_path):
+    config_file = tmp_path / "config"
+    config_file.write_text("""
+ServerAliveInterval 15
+Host server1
+	Hostname server1.example.com
+	User user1
+	ForwardAgent yes
+""")
+    ssh_config = SSHConfig().load(config_path=config_file)
+    assert len(ssh_config) == 1
+    host = ssh_config[0]
+    assert host.host == "server1"
+    assert host.hostname == "server1.example.com"
+    assert host.user == "user1"
+    # global option before the first Host is skipped (no host to attach to)...
+    assert "ServerAliveInterval" not in host.extra
+    # ...while a non-mapped option inside the host still lands in extra
+    assert host.extra == {"ForwardAgent": "yes"}
+
+
 def test_save_and_load(tmp_path):
     config_file = tmp_path / "config"
     hosts = [
