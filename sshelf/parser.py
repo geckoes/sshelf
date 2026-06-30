@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import os
+import shutil
 
 KEY_MAP = {
     "hostname": ("hostname", str),
@@ -56,6 +57,8 @@ class SSHConfig:
     def save(self, hosts: list[SSHHost], config_path: str = None) -> None:
         if config_path is None:
             config_path = os.path.expanduser("~/.ssh/config")
+        if os.path.exists(config_path):
+            shutil.copy2(config_path, str(config_path) + ".bak") # backup
         temp_config_path = str(config_path) + ".tmp"
         with open(temp_config_path, "w") as f:
             for host in hosts:
@@ -72,6 +75,7 @@ class SSHConfig:
                     f.write(f"    {key} {value}\n")
                 f.write("\n")
         os.replace(temp_config_path, config_path)
+        os.chmod(config_path, 0o600)  # Set permissions to 600
     
 def find_host(hosts: list[SSHHost], name: str) -> SSHHost | None:
     for host in hosts:

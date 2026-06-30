@@ -160,6 +160,32 @@ def test_save_and_load(tmp_path):
     assert loaded_hosts[1].identity_file == "~/.ssh/id_ed25519"
 
 
+def test_save_creates_backup_of_existing_file(tmp_path):
+    config_file = tmp_path / "config"
+    config_file.write_text("ServerAliveInterval 15\nHost old\n\tUser olduser\n")
+
+    SSHConfig().save([SSHHost(host="new", user="newuser")], config_path=config_file)
+
+    backup = tmp_path / "config.bak"
+    assert backup.exists()
+    # the backup keeps the ORIGINAL content, including the global directive
+    # that the regeneration drops
+    backup_text = backup.read_text()
+    assert "ServerAliveInterval 15" in backup_text
+    assert "Host old" in backup_text
+    # the active file is the regenerated one
+    active_text = config_file.read_text()
+    assert "Host new" in active_text
+    assert "ServerAliveInterval" not in active_text
+
+
+def test_save_no_backup_when_file_absent(tmp_path):
+    config_file = tmp_path / "config"  # does not exist yet
+    SSHConfig().save([SSHHost(host="new")], config_path=config_file)
+    assert not (tmp_path / "config.bak").exists()
+    assert config_file.exists()
+
+
 # find_host
 
 
