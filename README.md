@@ -18,11 +18,41 @@ You can:
 
 ## Installation
 
-Coming soon
+Requires Python 3.10+ and [uv](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/geckoes/sshelf.git
+cd sshelf
+uv sync
+```
 
 ## Usage
 
-Coming soon
+```bash
+uv run sshelf
+```
+
+### Keybindings
+
+| Key | Action |
+|-----|--------|
+| `a` | Add a new host |
+| `e` | Edit the selected host |
+| `d` | Delete the selected host (asks for confirmation) |
+| `/` | Search/filter by host, hostname or user |
+| `s` | Save changes to `~/.ssh/config` |
+| `q` | Quit (warns if there are unsaved changes) |
+
+Each host's advanced SSH options (e.g. `ProxyJump`, `SetEnv`, `LocalForward`)
+can be viewed and edited in the **Advanced Options** field of the add/edit form,
+one `Keyword Value` per line.
+
+Changes are kept in memory until you press `s`. On save, sshelf writes a backup
+of your current config to `~/.ssh/config.bak` and sets the file permissions to `600`.
+
+> **Note:** on save, sshelf rewrites `~/.ssh/config` from the hosts it manages.
+> Global directives, comments and `Match` blocks are **not** preserved in the
+> rewritten file — your original is always kept at `~/.ssh/config.bak`.
 
 ## Roadmap
 
