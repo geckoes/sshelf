@@ -127,9 +127,12 @@ class SShelfApp(App):
         self._set_modified(True)
 
     def action_save(self) -> None:
-        SSHConfig().save(self.hosts)
-        self._set_modified(False)
-        self.notify("Configuration saved.", severity="info")
+        try:
+            SSHConfig().save(self.hosts)
+            self._set_modified(False)
+            self.notify("Configuration saved.", severity="info")
+        except OSError as e:
+            self.notify(f"Error saving configuration: {e}", severity="error")
 
     def _set_modified(self, value: bool) -> None:
         self.modified = value

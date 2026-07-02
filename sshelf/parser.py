@@ -58,26 +58,29 @@ class SSHConfig:
         if config_path is None:
             config_path = os.path.expanduser("~/.ssh/config")
         backup_path = str(config_path) + ".bak"
-        if os.path.exists(config_path) and not os.path.exists(backup_path):
-            shutil.copy2(config_path, backup_path)  # one-time backup of the original
-        temp_config_path = str(config_path) + ".tmp"
-        with open(temp_config_path, "w") as f:
-            for host in hosts:
-                f.write(f"Host {host.host}\n")
-                if host.hostname:
-                    f.write(f"    Hostname {host.hostname}\n")
-                if host.user:
-                    f.write(f"    User {host.user}\n")
-                if host.port != 22:
-                    f.write(f"    Port {host.port}\n")
-                if host.identity_file:
-                    f.write(f"    IdentityFile {host.identity_file}\n")
-                for key, value in host.extra.items():
-                    f.write(f"    {key} {value}\n")
-                f.write("\n")
-        os.replace(temp_config_path, config_path)
-        os.chmod(config_path, 0o600)  # Set permissions to 600
-    
+        try:
+            if os.path.exists(config_path) and not os.path.exists(backup_path):
+                shutil.copy2(config_path, backup_path)  # one-time backup of the original
+            temp_config_path = str(config_path) + ".tmp"
+            with open(temp_config_path, "w") as f:
+                for host in hosts:
+                    f.write(f"Host {host.host}\n")
+                    if host.hostname:
+                        f.write(f"    Hostname {host.hostname}\n")
+                    if host.user:
+                        f.write(f"    User {host.user}\n")
+                    if host.port != 22:
+                        f.write(f"    Port {host.port}\n")
+                    if host.identity_file:
+                        f.write(f"    IdentityFile {host.identity_file}\n")
+                    for key, value in host.extra.items():
+                        f.write(f"    {key} {value}\n")
+                    f.write("\n")
+            os.replace(temp_config_path, config_path)
+            os.chmod(config_path, 0o600)  # Set permissions to 600
+        except OSError as e:
+            raise RuntimeError(f"Failed to save SSH config: {e}")
+
 def find_host(hosts: list[SSHHost], name: str) -> SSHHost | None:
     for host in hosts:
         if host.host == name:
