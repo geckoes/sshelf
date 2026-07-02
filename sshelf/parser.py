@@ -57,8 +57,9 @@ class SSHConfig:
     def save(self, hosts: list[SSHHost], config_path: str = None) -> None:
         if config_path is None:
             config_path = os.path.expanduser("~/.ssh/config")
-        if os.path.exists(config_path):
-            shutil.copy2(config_path, str(config_path) + ".bak") # backup
+        backup_path = str(config_path) + ".bak"
+        if os.path.exists(config_path) and not os.path.exists(backup_path):
+            shutil.copy2(config_path, backup_path)  # one-time backup of the original
         temp_config_path = str(config_path) + ".tmp"
         with open(temp_config_path, "w") as f:
             for host in hosts:

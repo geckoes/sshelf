@@ -186,6 +186,23 @@ def test_save_no_backup_when_file_absent(tmp_path):
     assert config_file.exists()
 
 
+def test_save_twice_keeps_original_backup(tmp_path):
+    config_file = tmp_path / "config"
+    config_file.write_text("ServerAliveInterval 15\nHost old\n\tUser olduser\n")
+    backup = tmp_path / "config.bak"
+
+    # first save backs up the pristine original
+    SSHConfig().save([SSHHost(host="first")], config_path=config_file)
+    # second save must NOT overwrite the backup with the already-flattened file
+    SSHConfig().save([SSHHost(host="second")], config_path=config_file)
+
+    backup_text = backup.read_text()
+    assert "ServerAliveInterval 15" in backup_text  # still the original
+    assert "Host old" in backup_text
+    assert "Host first" not in backup_text          # not the 1st-save output
+    assert "Host second" not in backup_text
+
+
 # find_host
 
 

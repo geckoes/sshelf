@@ -47,15 +47,32 @@ Each host's advanced SSH options (e.g. `ProxyJump`, `SetEnv`, `LocalForward`)
 can be viewed and edited in the **Advanced Options** field of the add/edit form,
 one `Keyword Value` per line.
 
-Changes are kept in memory until you press `s`. On save, sshelf writes a backup
-of your current config to `~/.ssh/config.bak` and sets the file permissions to `600`.
+Changes are kept in memory until you press `s`. The first time sshelf saves, it
+copies your original config to `~/.ssh/config.bak` (once — later saves never
+overwrite it, so the pristine original is always kept) and sets the file
+permissions to `600`.
 
-> **Note:** on save, sshelf rewrites `~/.ssh/config` from the hosts it manages.
-> Global directives, comments and `Match` blocks are **not** preserved in the
-> rewritten file — your original is always kept at `~/.ssh/config.bak`.
+## Known limitations
+
+On save, sshelf **rewrites** `~/.ssh/config` from scratch using only the hosts it
+models. Anything outside that model is therefore **dropped from the rewritten file**:
+
+- comments (`# ...`)
+- global directives placed before the first `Host` block (e.g. `ServerAliveInterval`)
+- `Match` blocks
+- original ordering, blank lines and formatting
+
+Your original file is copied to `~/.ssh/config.bak` on the first save and never
+overwritten afterwards, so the pristine original is always recoverable — but if
+you hand-curate your config (comments, `Match` rules, global options), be aware
+that the active file will be flattened after a save.
+
+Preserving these parts in the active file is planned for a future release.
 
 ## Roadmap
 
+- named, on-demand backups (choose the file, confirm overwrite)
+- preserve comments, global directives and `Match` blocks when saving
 - manage all kind of SSH host connection from TUI or CLI
 - import/export hosts configurations
 - cross-platform support (Linux, macOS, Windows)
